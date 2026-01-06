@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Search Bar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #667eea;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .search-box {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      transition: width 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      overflow: hidden;
+      border-radius: 30px;
+      background: white;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-box.active {
+      width: 400px;
+    }
+
+    .search-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 0 70px 0 25px;
+      font-size: 16px;
+      color: #333;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .search-box.active .search-input {
+      opacity: 1;
+      transition-delay: 0.2s;
+    }
+
+    .search-input::placeholder {
+      color: #999;
+    }
+
+    .search-btn {
+      position: absolute;
+      top: 50%;
+      right: 5px;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #667eea;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .search-btn:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .search-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .close-icon {
+      display: none;
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .search-box.active .search-icon {
+      display: none;
+    }
+
+    .search-box.active .close-icon {
+      display: block;
+    }
+
+    /* Results container */
+    .results-container {
+      position: absolute;
+      top: 70px;
+      right: 0;
+      width: 400px;
+      max-height: 0;
+      overflow: hidden;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .results-container.show {
+      max-height: 400px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .result-item {
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      animation: slideIn 0.3s ease forwards;
+      opacity: 0;
+    }
+
+    .result-item:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .result-item:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .result-item:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    .result-item:nth-child(4) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-item:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+    }
+
+    .result-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .result-description {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .no-results {
+      text-align: center;
+      color: #999;
+      padding: 20px;
+    }
+
+    /* Scrollbar styling */
+    .results-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .results-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .results-container::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .search-box.active {
+        width: 300px;
+      }
+
+      .results-container {
+        width: 300px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="search-container">
+    <div class="search-box" id="searchBox">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search anything...">
+      <button class="search-btn" id="searchBtn">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <svg class="close-icon" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="results-container" id="resultsContainer"></div>
+  </div>
+
+  <script>
+    const searchBox = document.getElementById('searchBox');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    // Sample data for search results
+    const sampleData = [
+      { title: 'Web Development', description: 'Learn modern web development with HTML, CSS, and JavaScript' },
+      { title: 'UI/UX Design', description: 'Create beautiful user interfaces and experiences' },
+      { title: 'JavaScript Frameworks', description: 'Explore React, Vue, and Angular frameworks' },
+      { title: 'CSS Animations', description: 'Master CSS animations and transitions' },
+      { title: 'Responsive Design', description: 'Build websites that work on all devices' },
+      { title: 'HTML5 Features', description: 'Discover the latest HTML5 capabilities' },
+      { title: 'Frontend Tools', description: 'Essential tools for frontend developers' },
+      { title: 'Performance Optimization', description: 'Speed up your website performance' }
+    ];
+
+    searchBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      if (!searchBox.classList.contains('active')) {
+        // Open search box
+        searchBox.classList.add('active');
+        searchInput.focus();
+      } else {
+        // Close search box
+        searchBox.classList.remove('active');
+        resultsContainer.classList.remove('show');
+        searchInput.value = '';
+        resultsContainer.innerHTML = '';
+      }
+    });
+
+    searchInput.addEventListener('input', function (e) {
+      const query = e.target.value.toLowerCase().trim();
+
+      if (query.length > 0) {
+        const filtered = sampleData.filter(item =>
+          item.title.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query)
+        );
+
+        displayResults(filtered);
+      } else {
+        resultsContainer.classList.remove('show');
+        resultsContainer.innerHTML = '';
+      }
+    });
+
+    function displayResults(results) {
+      resultsContainer.innerHTML = '';
+
+      if (results.length > 0) {
+        results.forEach(result => {
+          const item = document.createElement('div');
+          item.className = 'result-item';
+          item.innerHTML = `
+                        <div class="result-title">${result.title}</div>
+                        <div class="result-description">${result.description}</div>
+                    `;
+          item.addEventListener('click', function () {
+            searchInput.value = result.title;
+            resultsContainer.classList.remove('show');
+            alert('Selected: ' + result.title);
+          });
+          resultsContainer.appendChild(item);
+        });
+        resultsContainer.classList.add('show');
+      } else {
+        resultsContainer.innerHTML = '<div class="no-results">No results found</div>';
+        resultsContainer.classList.add('show');
+      }
+    }
+
+    // Close search box when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!searchBox.contains(e.target) && !resultsContainer.contains(e.target)) {
+        searchBox.classList.remove('active');
+        resultsContainer.classList.remove('show');
+        searchInput.value = '';
+        resultsContainer.innerHTML = '';
+      }
+    });
+
+    // Handle Enter key
+    searchInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchInput.value.trim()) {
+          alert('Searching for: ' + searchInput.value);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
